@@ -10,12 +10,9 @@ enum types
 	PSEUDO
 };
 
-//I want to take whatever data type here??? mby templates
-//void convertToRest()
-
 enum types detectType(std::string ToDetect)
 {
-	if (ToDetect.length() == 1 && std::isalpha(ToDetect[0]))
+	if (ToDetect.length() == 1 && std::isprint(ToDetect[0]))
 	{
 		std::cout << "we encountered char here..." << std::endl;
 		return CHAR;
@@ -23,7 +20,6 @@ enum types detectType(std::string ToDetect)
 	if (ToDetect.compare("-inff") == 0 || ToDetect.compare("+inff") == 0 || ToDetect.compare("nanf") == 0 ||
 		ToDetect.compare("-inf") == 0 || ToDetect.compare("+inf") == 0 || ToDetect.compare("nan") == 0)
 	{
-		//we might need to divide this into double and float pseudo
 		std::cout << "we encountered something mysterious here..." << std::endl;
 		return PSEUDO;
 	}
@@ -37,11 +33,12 @@ enum types detectType(std::string ToDetect)
 			return INT;
 		}
 	}
-	catch(const std::exception& e)
+	catch(const std::out_of_range& e)//triggers with overflow.. //what to return here??
 	{
-		std::cout << "ERROR1" << std::endl;
-		//this is what recognizes overflow .. 8)
-		std::cerr << e.what() << '\n';
+	}
+	catch(const std::invalid_argument& e)// .5 should be accepted and treated as double. This approach feels bad but it works for now
+	{
+		return DOUBLE;
 	}
 	try
 	{
@@ -54,8 +51,7 @@ enum types detectType(std::string ToDetect)
 	}
 	catch(const std::exception& e)
 	{
-		std::cout << "ERROR2" << std::endl;
-		std::cerr << e.what() << '\n';
+		return UNKNOWN;
 	}
 	try
 	{
@@ -68,39 +64,69 @@ enum types detectType(std::string ToDetect)
 	}
 	catch(const std::exception& e)
 	{
-		std::cout << "ERROR3" << std::endl;
-		std::cerr << e.what() << '\n';
+		return UNKNOWN;
 	}
 	return UNKNOWN;
 }
 
+//robust try catches here??? overflow
+//double max, float max
 void ScalarConverter::convert(std::string ToConvert)
 {
-	//we may still need to convert them really because it says convert them explicitly
 	enum types type;
 	type = detectType(ToConvert);
 	if (type == CHAR)
 	{
-		std::cout << "char: " << ToConvert << std::endl;
-		std::cout << "int: " << (int)ToConvert[0] << std::endl;
-		//float and double
+		char c = ToConvert[0];
+		std::cout << "char: " << c << std::endl;
+		std::cout << "int: " << static_cast<int>(c) << std::endl;
+		std::cout << "float: " << std::fixed << std::setprecision(1)<< static_cast<float>(c) << "f" << std::endl;
+		std::cout << "double: " << std::fixed << std::setprecision(1) << static_cast<double>(c) << std::endl;
 	}
 	else if (type == INT)
 	{
-		//check for overflow....
-		int data = std::stoi(ToConvert);
-		std::cout << "Converted: " << data << std::endl;
-		if (!std::isprint(data))
-		{
+		int n = std::stoi(ToConvert);
+		if (n < 0 || n > 127)
+			std::cout << "char: impossible" << std::endl;
+		else if (!std::isprint(n)) //might need impossible check as well! If its like -5
 			std::cout << "char: Non displayable" << std::endl;
-		}
 		else
-			std::cout << "char :" << (char)data << std::endl;
-		std::cout << "int: " << data << std::endl;
-		float data1 = static_cast<float>(data); //not working
-		std::cout << "float: " << data1 << std::endl;
-		double data2 = static_cast<double>(data); // not working
-		std::cout << "double: " << data2 << std::endl;
+			std::cout << "char: " << static_cast<char>(n) << std::endl;
+		std::cout << "int: " << n << std::endl;
+		std::cout << "float: " << std::fixed << std::setprecision(1)<< static_cast<float>(n) << "f" << std::endl;
+		std::cout << "double: " << std::fixed << std::setprecision(1) << static_cast<double>(n) << std::endl;
+	}
+	else if (type == FLOAT)
+	{
+		float n = std::stof(ToConvert);
+		if (n < 0 || n > 127)
+			std::cout << "char: impossible" << std::endl;
+		else if (!std::isprint(n))
+			std::cout << "char: Non displayable" << std::endl;
+		else
+			std::cout << "char :" << static_cast<char>(n) << std::endl;
+		if (n > std::numeric_limits<int>::max() || n < std::numeric_limits<int>::min())
+			std::cout << "int: impossible" << std::endl;		
+		else
+			std::cout << "int: " << static_cast<int>(n) << std::endl;			
+		std::cout << "float: " << std::fixed << std::setprecision(1) << n << "f" << std::endl;
+		std::cout << "double: " << std::fixed << std::setprecision(1) << static_cast<double>(n) << std::endl;
+	}
+	else if (type == DOUBLE) //if input is 1e10...
+	{
+		double n = std::stod(ToConvert);
+		if (n < 0 || n > 127)
+			std::cout << "char: impossible" << std::endl;
+		else if (!std::isprint(n))
+			std::cout << "char: Non displayable" << std::endl;
+		else
+			std::cout << "char :" << static_cast<char>(n) << std::endl;
+		if (n > std::numeric_limits<int>::max() || n < std::numeric_limits<int>::min())
+			std::cout << "int: impossible" << std::endl;		
+		else
+			std::cout << "int: " << static_cast<int>(n) << std::endl;
+		std::cout << "float: " << std::fixed << std::setprecision(1)<< static_cast<float>(n) << "f" << std::endl;
+		std::cout << "double: " << std::fixed << std::setprecision(1) << n << std::endl;
 	}
 	else if (type == PSEUDO)
 	{
@@ -115,52 +141,14 @@ void ScalarConverter::convert(std::string ToConvert)
 		std::cout << "float: " << fString << std::endl;
 		std::cout << "double: " << dString << std::endl;
 	}
-	//float and double missing
-	//detect the type
-	//convert it to its actual type
-	//then convert it to the other three data types
-
 }
 
+//what should 0 be, that shouldnt be char or should it? mby the char check needs like a if its not num
+//tab?
+//overflows
+//is .42 "acceptable"
 int main(int argc, char *argv[])
 {
 //argc check and make it non instantiable...
-std::cout << "here..." << std::endl;
 ScalarConverter::convert(argv[1]);
 }
-
-
-
-
-
-// //I want to take whatever data type here??? mby templates
-// //void convertToRest()
-
-// enum types detectType(std::string ToDetect)
-// {
-// 	int digit = 0;
-// 	if (ToDetect.length() == 1 && std::isalpha(ToDetect[0]))
-// 	{
-// 		std::cout << "we encountered char here..." << std::endl;
-// 		return CHAR;
-// 	}
-// 	for (char c : ToDetect)
-// 	{
-// 		if (std::isdigit(c))
-// 			digit++;
-// 	}
-// 	if (ToDetect.length() == digit)
-// 	{
-// 		std::cout << "we encountered int here..." << std::endl;
-// 		return INT;
-// 	}
-// 	if (ToDetect.compare("-inff") == 0 || ToDetect.compare("+inff") == 0 || ToDetect.compare("nanf") == 0 ||
-// 		ToDetect.compare("-inf") == 0 || ToDetect.compare("+inf") == 0 || ToDetect.compare("nan") == 0)
-// 	{
-// 		//we might need to divide this into double and float pseudo
-// 		std::cout << "we encountered something mysterious here..." << std::endl;
-// 		return PSEUDO;
-// 	}
-// 	//we need to detect float and double as well
-// 	return UNKNOWN;
-// }
