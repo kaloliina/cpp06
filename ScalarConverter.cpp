@@ -12,7 +12,7 @@ enum types
 
 enum types detectType(std::string ToDetect)
 {
-	if (ToDetect.length() == 1 && std::isprint(ToDetect[0]))
+	if (ToDetect.length() == 1 && std::isprint(ToDetect[0])) //do we need a check if its not a number???
 	{
 		std::cout << "we encountered char here..." << std::endl;
 		return CHAR;
@@ -33,14 +33,10 @@ enum types detectType(std::string ToDetect)
 			return INT;
 		}
 	}
-	catch(const std::out_of_range& e)//triggers with overflow.. //what to return here??
+	catch(const std::exception& e)//triggers out of range and invalid argument (.5) but we actually want to proceed at that point
 	{
 	}
-	catch(const std::invalid_argument& e)// .5 should be accepted and treated as double. This approach feels bad but it works for now
-	{
-		return DOUBLE;
-	}
-	try
+	try //better to try catch here or inn the convert? feels redundant to do it in both
 	{
 		std::stod(ToDetect, &pos);
 		if (ToDetect.length() == pos)
@@ -49,8 +45,9 @@ enum types detectType(std::string ToDetect)
 			return DOUBLE;
 		}
 	}
-	catch(const std::exception& e)
+	catch(const std::exception& e) //this triggers with invalid input, big overflow etc. 
 	{
+		std::cout << "we are here when we give double max, why?" << std::endl;
 		return UNKNOWN;
 	}
 	try
@@ -64,71 +61,50 @@ enum types detectType(std::string ToDetect)
 	}
 	catch(const std::exception& e)
 	{
+		std::cout << "we are here when we give float max, why?" << std::endl;
 		return UNKNOWN;
 	}
 	return UNKNOWN;
 }
 
-//robust try catches here??? overflow
-//double max, float max
+
+void printResult(enum types type, double ToConvert)
+{
+	/*char*/
+	if (ToConvert < 0 || ToConvert > 127)
+		std::cout << "char: impossible" << std::endl;
+	else if (!std::isprint(ToConvert)) //might need impossible check as well! If its like -5
+		std::cout << "char: Non displayable" << std::endl;
+	else
+		std::cout << "char: " << static_cast<char>(ToConvert) << std::endl;
+	/*int*/
+	if (ToConvert > std::numeric_limits<int>::max() || ToConvert < std::numeric_limits<int>::min())
+		std::cout << "int: impossible" << std::endl;		
+	else
+		std::cout << "int: " << static_cast<int>(ToConvert) << std::endl;
+	/*float*/
+	if (ToConvert > std::numeric_limits<float>::max() || ToConvert < std::numeric_limits<float>::min())
+		std::cout << "float: impossible" << std::endl;
+	else
+		std::cout << "float: " << std::fixed << std::setprecision(1)<< static_cast<float>(ToConvert) << "f" << std::endl;
+	std::cout << "double: " << std::fixed << std::setprecision(1) << ToConvert << std::endl;
+}
+
+/*there are some cases where instead of float, we return double in detectType, it's actually working but maybe by accident*/
 void ScalarConverter::convert(std::string ToConvert)
 {
 	enum types type;
 	type = detectType(ToConvert);
+	double result;
 	if (type == CHAR)
+		result = ToConvert[0];
+	if (type == INT || type == FLOAT || type == DOUBLE)
+		result = stod(ToConvert);
+	if (type == CHAR || type == INT || type == FLOAT || type == DOUBLE)
 	{
-		char c = ToConvert[0];
-		std::cout << "char: " << c << std::endl;
-		std::cout << "int: " << static_cast<int>(c) << std::endl;
-		std::cout << "float: " << std::fixed << std::setprecision(1)<< static_cast<float>(c) << "f" << std::endl;
-		std::cout << "double: " << std::fixed << std::setprecision(1) << static_cast<double>(c) << std::endl;
+		printResult(CHAR, result);
 	}
-	else if (type == INT)
-	{
-		int n = std::stoi(ToConvert);
-		if (n < 0 || n > 127)
-			std::cout << "char: impossible" << std::endl;
-		else if (!std::isprint(n)) //might need impossible check as well! If its like -5
-			std::cout << "char: Non displayable" << std::endl;
-		else
-			std::cout << "char: " << static_cast<char>(n) << std::endl;
-		std::cout << "int: " << n << std::endl;
-		std::cout << "float: " << std::fixed << std::setprecision(1)<< static_cast<float>(n) << "f" << std::endl;
-		std::cout << "double: " << std::fixed << std::setprecision(1) << static_cast<double>(n) << std::endl;
-	}
-	else if (type == FLOAT)
-	{
-		float n = std::stof(ToConvert);
-		if (n < 0 || n > 127)
-			std::cout << "char: impossible" << std::endl;
-		else if (!std::isprint(n))
-			std::cout << "char: Non displayable" << std::endl;
-		else
-			std::cout << "char :" << static_cast<char>(n) << std::endl;
-		if (n > std::numeric_limits<int>::max() || n < std::numeric_limits<int>::min())
-			std::cout << "int: impossible" << std::endl;		
-		else
-			std::cout << "int: " << static_cast<int>(n) << std::endl;			
-		std::cout << "float: " << std::fixed << std::setprecision(1) << n << "f" << std::endl;
-		std::cout << "double: " << std::fixed << std::setprecision(1) << static_cast<double>(n) << std::endl;
-	}
-	else if (type == DOUBLE) //if input is 1e10...
-	{
-		double n = std::stod(ToConvert);
-		if (n < 0 || n > 127)
-			std::cout << "char: impossible" << std::endl;
-		else if (!std::isprint(n))
-			std::cout << "char: Non displayable" << std::endl;
-		else
-			std::cout << "char :" << static_cast<char>(n) << std::endl;
-		if (n > std::numeric_limits<int>::max() || n < std::numeric_limits<int>::min())
-			std::cout << "int: impossible" << std::endl;		
-		else
-			std::cout << "int: " << static_cast<int>(n) << std::endl;
-		std::cout << "float: " << std::fixed << std::setprecision(1)<< static_cast<float>(n) << "f" << std::endl;
-		std::cout << "double: " << std::fixed << std::setprecision(1) << n << std::endl;
-	}
-	else if (type == PSEUDO)
+	else if (type == PSEUDO) //separate function for this?
 	{
 		std::cout << "char: impossible" << std::endl;
 		std::cout << "int: impossible" << std::endl;
@@ -141,6 +117,13 @@ void ScalarConverter::convert(std::string ToConvert)
 		std::cout << "float: " << fString << std::endl;
 		std::cout << "double: " << dString << std::endl;
 	}
+	else if (type == UNKNOWN) //separate function for this???
+	{
+		std::cout << "char: impossible" << std::endl;
+		std::cout << "int: impossible" << std::endl;
+		std::cout << "float: impossible" << std::endl;
+		std::cout << "double: impossible" << std::endl;	
+	}
 }
 
 //what should 0 be, that shouldnt be char or should it? mby the char check needs like a if its not num
@@ -149,6 +132,11 @@ void ScalarConverter::convert(std::string ToConvert)
 //is .42 "acceptable"
 int main(int argc, char *argv[])
 {
-//argc check and make it non instantiable...
-ScalarConverter::convert(argv[1]);
+	if (argc != 2)
+	{
+		std::cout << "Expected format: ./ScalarConverter <String to Convert>" << std::endl;
+		return 1;
+	}
+	ScalarConverter::convert(argv[1]);
+	return 0;
 }
