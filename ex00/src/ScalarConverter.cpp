@@ -1,5 +1,8 @@
 #include "../include/ScalarConverter.hpp"
 
+/*
+- How to deal with helper functions that are related to a specific class?
+*/
 enum types
 {
 	UNKNOWN,
@@ -10,9 +13,9 @@ enum types
 	PSEUDO
 };
 
-enum types detectType(std::string ToDetect)
+enum types detectType(std::string ToDetect) //Polish this
 {
-	if (ToDetect.length() == 1 && std::isprint(ToDetect[0])) //do we need a check if its not a number???
+	if (ToDetect.length() == 1 && std::isprint(ToDetect[0]) && !std::isdigit(ToDetect[0])) //Double check this, if input is digit(0-9), we consider it as an int?
 	{
 		std::cout << "we encountered char here..." << std::endl;
 		return CHAR;
@@ -33,7 +36,7 @@ enum types detectType(std::string ToDetect)
 			return INT;
 		}
 	}
-	catch(const std::exception& e)//triggers out of range and invalid argument (.5) but we actually want to proceed at that point
+	catch(const std::exception& e)//triggers out of range and invalid argument (.5) but at that point, we still want to proceed because it is valid
 	{
 	}
 	try
@@ -59,7 +62,7 @@ enum types detectType(std::string ToDetect)
 			return FLOAT;
 		}
 	}
-	catch(const std::exception& e)
+	catch(const std::exception& e) //when would this realistically fail since most issues are caught in stod's catch?
 	{
 		std::cout << "we are here when we give float max, why?" << std::endl;
 		return UNKNOWN;
@@ -67,12 +70,21 @@ enum types detectType(std::string ToDetect)
 	return UNKNOWN;
 }
 
-void printRegular(double ToConvert) //how to deal with functions that are helper functions to a specific class?
+/*Static_cast performs compile-time type conversion and is mainly used for explicit conversions.
+static_cast<new_type>(exp)
+- exp: Data to be converted
+- new_type: Desired type of expression
+Static_cast can be used to convert between related types.
+
+We have converted the data to double as double can hold most amount of data.
+std::fixed tells how to display(fixed-point, includes decimals) and std::setprecision
+tells how many decimals to show.*/
+void printRegular(double ToConvert)
 {
 	/*char*/
 	if (ToConvert < 0 || ToConvert > 127)
 		std::cout << "char: impossible" << std::endl;
-	else if (!std::isprint(ToConvert)) //might need impossible check as well! If its like -5
+	else if (!std::isprint(ToConvert))
 		std::cout << "char: Non displayable" << std::endl;
 	else
 		std::cout << "char: " << static_cast<char>(ToConvert) << std::endl;
@@ -111,7 +123,6 @@ void printPseudo(enum types type, std::string ToConvert)
 	}
 }
 
-/*there are some cases where instead of float, we return double in detectType, it's actually working but maybe by accident*/
 void ScalarConverter::convert(std::string ToConvert)
 {
 	enum types type;
@@ -122,9 +133,7 @@ void ScalarConverter::convert(std::string ToConvert)
 	if (type == INT || type == FLOAT || type == DOUBLE)
 		result = stod(ToConvert);
 	if (type == CHAR || type == INT || type == FLOAT || type == DOUBLE)
-	{
 		printRegular(result);
-	}
 	else
 		printPseudo(type, ToConvert);
 }
