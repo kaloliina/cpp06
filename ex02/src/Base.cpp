@@ -2,38 +2,32 @@
 #include "../include/A.hpp"
 #include "../include/B.hpp"
 #include "../include/C.hpp"
-#include <ctime>
-#include <stdlib.h>
 #include <iostream>
-#include <exception>
+#include <ctime>
 
-//https://www.geeksforgeeks.org/cpp/casting-operators-in-cpp/ useful info
 Base*	Base::generate(void)
 {
 	Base* obj = nullptr;
 	std::srand(std::time(nullptr));
 	if ((rand() % 3) == 0)
-	{
-		std::cout << "Creating A" << std::endl;
 		obj = new A();
-	}
 	else if ((rand() % 3) == 1)
-	{
-		std::cout << "Creating B" << std::endl;
 		obj = new B();
-	}
 	else
-	{
-		std::cout << "Creating C" << std::endl;
 		obj = new C();
-	}
 	return obj;
 }
 
-/*In pointer conversions, dynamic_cast simply returns a null pointer*/
+/*Dynamic_cast operator is mainly used to perform downcasting
+(converting a pointer/reference of a base class to a derived class)
+in polymorphisms and inheritance. It ensures type safety by performing
+a runtime check to verify the validity of the conversion.
+dynamic_cast<new_type>(exp)
+
+If the conversion is not possible, dynamic_cast returns a null pointer
+for pointer conversions.*/
 void	Base::identify(Base* p)
 {
-	std::cout << "We've encountered a pointer" << std::endl;
 	if (dynamic_cast<A*>(p))
 		std::cout << "Type is A" << std::endl;
 	else if (dynamic_cast<B*>(p))
@@ -44,11 +38,11 @@ void	Base::identify(Base* p)
 		std::cout << "Cannot identify type" << std::endl;
 }
 
-/*For reference conversions, dynamic_cast throws a bad_cast exception*/
+/*If the conversion is not possible, dynamic_cast throws a bad_cast exception
+for reference conversions.*/
 void	Base::identify(Base& p)
 {
-	std::cout << "We've encountered a reference" << std::endl;
-	try 
+	try
 	{
 		(void)dynamic_cast<A&>(p); //adding (void), otherwise -Werror triggers
 		std::cout << "Type is A" << std::endl;

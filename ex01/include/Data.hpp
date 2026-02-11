@@ -3,6 +3,6 @@
 
 struct Data
 {
-	std::string brand;
-	int years_since_bought;
+	std::string	brand;
+	int			years_since_bought;
 };

@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 	(void)argv;
 	Data datuliini;
 	datuliini.years_since_bought = 5;
-	datuliini.brand = "Helmut lang";
+	datuliini.brand = "Helmut Lang";
 
 	std::cout << &datuliini << std::endl;
 	uintptr_t ptr;

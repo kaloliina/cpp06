@@ -8,5 +8,6 @@ int main(int argc, char *argv[])
 	base = base->generate();
 	base->identify(base);
 	base->identify(*base);
+	delete base;
 	return 0;
 }
