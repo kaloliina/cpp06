@@ -1,12 +1,10 @@
 #include "../include/Serializer.hpp"
 
-int main(int argc, char *argv[])
+int main(void)
 {
-	(void)argc;
-	(void)argv;
 	Data datuliini;
 	datuliini.years_since_bought = 5;
-	datuliini.brand = "Helmut Lang";
+	datuliini.brand = "Nike";
 
 	std::cout << &datuliini << std::endl;
 	uintptr_t ptr;

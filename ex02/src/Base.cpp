@@ -5,7 +5,7 @@
 #include <iostream>
 #include <ctime>
 
-Base*	Base::generate(void)
+Base*	generate(void)
 {
 	Base* obj = nullptr;
 	std::srand(std::time(nullptr));
